@@ -86,7 +86,7 @@ class StreamDeck():
 
     draw = ImageDraw.Draw(icon)
     draw.text((icon.width / 2, icon.height / 2), text = initials, font = font,
-			anchor = "mm", fill = "white")
+			anchor = "mm", fill = "yellow")
 
     return icon
 
