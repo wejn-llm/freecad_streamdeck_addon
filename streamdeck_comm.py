@@ -44,6 +44,7 @@ class StreamDeck():
     self.__fade_start_tstamp = None
 
     # Load the TrueType font
+    self.ttf_file = ttf_file
     self.font = ImageFont.truetype(ttf_file, ttf_size)
 
     # Preload icons for the Stream Deck keys
@@ -57,6 +58,37 @@ class StreamDeck():
     _, font_text_min_y, _, font_text_max_y = self.font.getbbox("A!_j")
     self.margins = [font_text_max_y - font_text_min_y + 1] * 4
 
+
+
+  def initials_icon(self, name):
+    """Build a placeholder icon showing the initials of each word of name (e.g.
+    "B-Spline Tools" -> "BT"), for use as an icon representing a named group
+    such as a toolbar that has no icon of its own
+    Return the blank icon if name is empty or blank
+    """
+
+    initials = "".join(w[0] for w in name.split()).upper() if name else ""
+
+    if not initials:
+      return self.blank_image
+
+    icon = self.blank_image.copy()
+
+    # Find the largest font size that fits the initials within the icon, down
+    # to a minimum size below which we just let the text overflow
+    font_size = icon.height
+    while font_size > 8:
+      font = ImageFont.truetype(self.ttf_file, font_size)
+      left, top, right, bottom = font.getbbox(initials)
+      if right - left <= icon.width * 0.85 and bottom - top <= icon.height * 0.7:
+        break
+      font_size -= 2
+
+    draw = ImageDraw.Draw(icon)
+    draw.text((icon.width / 2, icon.height / 2), text = initials, font = font,
+			anchor = "mm", fill = "white")
+
+    return icon
 
 
 
