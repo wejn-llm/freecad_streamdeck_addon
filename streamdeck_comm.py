@@ -73,6 +73,7 @@ class StreamDeck():
       return self.blank_image
 
     icon = self.blank_image.copy()
+    icon = icon.convert("RGB")
 
     # Find the largest font size that fits the initials within the icon, down
     # to a minimum size below which we just let the text overflow
