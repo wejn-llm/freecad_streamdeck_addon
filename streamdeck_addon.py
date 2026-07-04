@@ -406,7 +406,7 @@ def streamdeck_update():
 
             _, n, _, _, tt, bt, lbc, rbc = ks.split(pages.SV)
             img = n if n in ("", "PAGEPREV", "PAGENEXT") else \
-		"" if n == "PAGESELECT" else \
+		tbactions.toolbar_icon_as_pil_image(bt) if n == "PAGESELECT" else \
 		tbactions.actions[n].icon_as_pil_image()
 
             try:

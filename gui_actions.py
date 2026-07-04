@@ -12,6 +12,32 @@ from PySide import QtCore, QtGui
 
 
 
+## Functions
+#
+
+def _qicon_as_pil_image(icon, mode = QtGui.QIcon.Mode.Normal):
+  """Convert a QIcon into a PIL image using the given QIcon.Mode, or return
+  None if the icon is null or on any error
+  """
+
+  if icon is None or icon.isNull():
+    return None
+
+  try:
+    pixmap = icon.pixmap(128, 128, mode = mode)
+    qba = QtCore.QByteArray()
+    qbf = QtCore.QBuffer(qba)
+    pixmap.save(qbf, "PPM")
+    img = Image.open(io.BytesIO(qba))
+    qbf.close
+
+  except:
+    img = None
+
+  return img
+
+
+
 ## Classes
 #
 
@@ -57,21 +83,9 @@ class Action():
     """Convert the enabled or disabled versions of the QIcon into a PIL image
     """
 
-    try:
-      pixmap = self.action.icon().pixmap(128, 128,
-					mode = QtGui.QIcon.Mode.Normal \
-							if self.enabled else \
+    return _qicon_as_pil_image(self.action.icon(),
+					QtGui.QIcon.Mode.Normal if self.enabled else \
 						QtGui.QIcon.Mode.Disabled)
-      qba = QtCore.QByteArray()
-      qbf = QtCore.QBuffer(qba)
-      pixmap.save(qbf, "PPM")
-      img = Image.open(io.BytesIO(qba))
-      qbf.close
-
-    except:
-      img = None
-
-    return img
 
 
 
@@ -90,6 +104,7 @@ class ToolbarActions():
     self.previous_toolbars = []
     self.toolbars = []
     self.toolbar_actions = {}
+    self.toolbar_icons = {}
     self.actions = {}
 
     self.expanded_actions = {}
@@ -134,10 +149,12 @@ class ToolbarActions():
     if update_actions:
 
       self.toolbar_actions.clear()
+      self.toolbar_icons.clear()
       for i, toolbar in enumerate(tbs):
 
         t = self.toolbars[i]
         self.toolbar_actions[t] = []
+        self.toolbar_icons[t] = toolbar.toggleViewAction().icon()
 
         # Get the list of buttons in this toolbar
         for button in toolbar.findChildren(QtGui.QToolButton):
@@ -217,3 +234,12 @@ class ToolbarActions():
 
     # Signal that the actions have not been updated
     return False
+
+
+
+  def toolbar_icon_as_pil_image(self, toolbar_name):
+    """Convert the given toolbar's own icon into a PIL image, or return None if
+    the toolbar is unknown or has no icon of its own
+    """
+
+    return _qicon_as_pil_image(self.toolbar_icons.get(toolbar_name))
