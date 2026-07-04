@@ -283,6 +283,12 @@ def streamdeck_update():
               if pages.flip(1 if n == "PAGENEXT" else -1):
                 update_streamdeck_keys = True
 
+            # Jump to the page selected on the page index
+            elif n == "PAGESELECT":
+              last_action_pressed = None
+              if pages.select_page(int(keystrings[val].split(pages.SV)[0])):
+                update_streamdeck_keys = True
+
             # Act upon a real action
             else:
               last_action_pressed = tbactions.actions[n]
@@ -323,6 +329,16 @@ def streamdeck_update():
           if pages.flip(val):
             update_streamdeck_keys = True
 
+      # If we have page navigation keys and we're not already showing the page
+      # index, check whether the prev and next keys - always the last 2 keys of
+      # a page - are both currently held down, and if so, show the page index
+      if pages.with_nav_keys and not pages.showing_index:
+        held = streamdeck.keys_down()
+        if streamdeck.nbkeys - 2 in held and streamdeck.nbkeys - 1 in held:
+          last_action_pressed = None
+          if pages.enter_index():
+            update_streamdeck_keys = True
+
     # Should we get the current state of the FreeCAD toolbars and update the
     # Stream Deck pages?
     if not update_streamdeck_keys and now > next_actions_update_tstamp:
@@ -348,9 +364,13 @@ def streamdeck_update():
 				params.bracket_color_page_nav_keys,
 				params.bracket_color_expandable_tools)
 
-        # Find the new location of the current page in the newly-rebuilt pages
-        # and update it
-        pages.locate_current_page(new_toolbar, last_action_pressed)
+        # If we're showing the page index, rebuild it to reflect the new pages.
+        # Otherwise, find the new location of the current page in the
+        # newly-rebuilt pages and update it
+        if pages.showing_index:
+          pages.enter_index()
+        else:
+          pages.locate_current_page(new_toolbar, last_action_pressed)
 
         update_streamdeck_keys = True
 
@@ -386,6 +406,7 @@ def streamdeck_update():
 
             _, n, _, _, tt, bt, lbc, rbc = ks.split(pages.SV)
             img = n if n in ("", "PAGEPREV", "PAGENEXT") else \
+		"" if n == "PAGESELECT" else \
 		tbactions.actions[n].icon_as_pil_image()
 
             try:
