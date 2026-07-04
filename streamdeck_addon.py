@@ -387,7 +387,7 @@ def streamdeck_update():
         if pages.previous_current_page:
           for keyno in range(streamdeck.nbkeys):
             try:
-              streamdeck.set_key(keyno, None)
+              streamdeck.set_key(keyno, "", lambda: None)
             except:
               streamdeck.close()
               del(tbactions)
@@ -404,13 +404,22 @@ def streamdeck_update():
         for keyno, ks in enumerate(keystrings):
           if not pages.previous_current_page or ks != prev_keystrings[keyno]:
 
-            _, n, _, _, tt, bt, lbc, rbc = ks.split(pages.SV)
-            img = n if n in ("", "PAGEPREV", "PAGENEXT") else \
-		streamdeck.initials_icon(bt) if n == "PAGESELECT" else \
-		tbactions.actions[n].icon_as_pil_image()
+            _, n, en, iconid, tt, bt, lbc, rbc = ks.split(pages.SV)
+
+            if n in ("", "PAGEPREV", "PAGENEXT"):
+              cache_key = n
+              image_provider = lambda n = n: n
+            elif n == "PAGESELECT":
+              cache_key = ("PAGESELECT", bt)
+              image_provider = lambda bt = bt: streamdeck.initials_icon(bt)
+            else:
+              cache_key = (iconid, en)
+              image_provider = lambda n = n: \
+			tbactions.actions[n].icon_as_pil_image()
 
             try:
-              streamdeck.set_key(keyno, img, tt, bt, lbc, rbc)
+              streamdeck.set_key(keyno, cache_key, image_provider,
+					tt, bt, lbc, rbc)
             except:
               streamdeck.close()
               del(tbactions)
