@@ -292,6 +292,16 @@ class StreamDeck():
 
 
 
+  def keys_down(self):
+    """Return the set of key numbers currently held down, based on the state
+    determined by the last call to get_input_events()
+    """
+
+    return {i for i, ts in enumerate(self.__key_states_tstamps or []) \
+			if ts is not None}
+
+
+
   def set_key(self, keyno, image,
 		top_text = None, bottom_text = None,
 		left_bracket_color = None, right_bracket_color = None):
